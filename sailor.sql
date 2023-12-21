@@ -53,16 +53,20 @@ INSERT INTO rserver (sid, bid, dojoin) VALUES (205, 105, '2011-07-07');
 
 SELECT * FROM rserver;
 
- SELECT * FROM sailor WHERE sname LIKE '%A%';
- 
- SELECT sname FROM sailor WHERE sid IN (SELECT sid FROM rserver);
- 
- SELECT sailor.*
- FROM sailor
- WHERE EXISTS (SELECT * FROM rserver WHERE sailor.sid = rserver.sid);
- 
+SELECT *
+FROM sailor
+WHERE sname LIKE '%A%';
+
+SELECT s.sname
+FROM sailor s
+WHERE s.sid IN (SELECT rs.sid FROM rserver rs);
+
+SELECT s.*
+FROM sailor s
+WHERE EXISTS (SELECT 1 FROM rserver rs WHERE s.sid = rs.sid);
+
 CREATE TRIGGER T1
 AFTER INSERT ON sailor
 FOR EACH ROW
-     INSERT INTO sail (sid, sname, rating, age)
-     VALUES (NEW.sid, DEFAULT, DEFAULT, DEFAULT);
+    INSERT INTO sail (sid, sname, rating, age)
+    VALUES (NEW.sid, NEW.sname, DEFAULT, DEFAULT);
