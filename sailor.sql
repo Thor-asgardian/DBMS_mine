@@ -61,25 +61,35 @@ WHERE r.sid=(SELECT sid FROM sailor WHERE sname="albert");
 
 -- Find all sailor id’s of sailors who have a rating of at least 8 or reserved boat 103
 
-SELECT sname FROM sailor 
-WHERE sid NOT IN 
-(SELECT DISTINCT(r.sid) FROM reserves r
-JOIN boat b ON r.bid=b.bid
-WHERE bname="b3")
-ORDER BY sname ASC;
+SELECT sailor_id
+FROM Reserves
+WHERE rating >= 8 OR boat_id = 103;
 
 -- Find the names of sailors who have not reserved a boat whose name contains the string “storm”. Order the names in ascending order.
 
-SELECT s.sname
-FROM sailor s
-WHERE s.sid IN (SELECT s.sid FROM rserver r);
+SELECT DISTINCT Sailors.sailor_name
+FROM Sailors
+WHERE Sailors.sid NOT IN (
+    SELECT Reserves.sid
+    FROM Reserves
+    JOIN Boats ON Reserves.bid = Boats.bid
+    WHERE Boats.boat_name LIKE '%storm%'
+)
+  ORDER BY Sailors.sailor_name ASC;
 
 -- Find the names of sailors who have reserved all boats.
 
-SELECT sname
-FROM SAILOR
-WHERE NOT EXISTS (SELECT * FROM BOAT
-WHERE BOAT.bid NOT IN (SELECT bid FROM RESERVES WHERE RESERVES.sid = SAILOR.sid));
+SELECT DISTINCT S.sname
+FROM Sailors S
+WHERE NOT EXISTS (
+    SELECT B.bid
+    FROM Boats B
+    WHERE NOT EXISTS (
+        SELECT R.bid
+        FROM Reserves R
+        WHERE R.sid = S.sid AND R.bid = B.bid
+    )
+);
 
 -- Find the name and age of the oldest sailor.
 
