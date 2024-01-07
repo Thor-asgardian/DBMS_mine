@@ -55,9 +55,9 @@ SELECT * FROM rserver;
 
 -- Find the colours of boats reserved by Albert
 
-SELECT *
-FROM sailor
-WHERE sname = 'Albert';
+SELECT color FROM boat b
+JOIN reserves r ON b.bid=r.bid
+WHERE r.sid=(SELECT sid FROM sailor WHERE sname="albert");
 
 -- Find all sailor id’s of sailors who have a rating of at least 8 or reserved boat 103
 
