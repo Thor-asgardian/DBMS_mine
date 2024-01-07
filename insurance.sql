@@ -2,36 +2,48 @@ CREATE DATABASE insurance;
 USE insurance;
 
 CREATE TABLE person (
-driverid VARCHAR(50) PRIMARY KEY, 
-drivernm VARCHAR(30), 
-address VARCHAR(100)
+driver_id VARCHAR(50) PRIMARY KEY,
+driver_name VARCHAR(50),
+address VARCHAR(150)
 );
 
 CREATE TABLE car (
-regno VARCHAR(50) PRIMARY KEY, 
-model VARCHAR(30), 
-year_of_manufacture INT
+reg_no VARCHAR(50) PRIMARY KEY,
+model VARCHAR(50),
+c_year INT
 );
 
 CREATE TABLE accident (
-report_number INT, 
-acc_date DATE, 
-location VARCHAR(50)
-); 
+report_no INT PRIMARY KEY,
+accident_date DATE,
+location VARCHAR(150)
+);
 
 CREATE TABLE owns (
-driverid VARCHAR(50) PRIMARY KEY, 
-regno VARCHAR(50),
-FOREIGN KEY (driverid) REFERENCES person (driverid),
-FOREIGN KEY (regno) REFERENCES car (regno)
-); 
+driver_id VARCHAR(50),
+reg_no VARCHAR(50),
+FOREIGN KEY (driver_id) REFERENCES person(driver_id),
+FOREIGN KEY (reg_no) REFERENCES car(reg_no)
+);
 
 CREATE TABLE participated (
-driverid VARCHAR(50),
-regno VARCHAR(50),
-report_number INT,
-damage_amount DECIMAL(10, 2),
-FOREIGN KEY (driverid) REFERENCES person(driverid) ON DELETE CASCADE,
-FOREIGN KEY (regno) REFERENCES car(regno) ON DELETE CASCADE,
-FOREIGN KEY (reportnumber) REFERENCES accident(reportnumber)
+driver_id VARCHAR(50),
+reg_no VARCHAR(50),
+report_no INT,
+damage_amount FLOAT,
+FOREIGN KEY (driver_id) REFERENCES person(driver_id) ON DELETE CASCADE,
+FOREIGN KEY (reg_no) REFERENCES car(reg_no) ON DELETE CASCADE,
+FOREIGN KEY (report_no) REFERENCES accident(report_no)
 );
+
+SELECT COUNT(DISTINCT p.driver_id)
+FROM accident a
+JOIN participated pa ON a.report_no = pa.report_no
+JOIN person p ON pa.driver_id = p.driver_id
+WHERE p.driver_name = 'smith';
+
+
+SELECT COUNT(DISTINCT pe.driver_name)
+FROM person pe
+JOIN participated pa ON pe.driver_id = pa.driver_id
+JOIN car c ON pa.reg_no = c.reg_no;
