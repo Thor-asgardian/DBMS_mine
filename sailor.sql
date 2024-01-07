@@ -53,20 +53,65 @@ INSERT INTO rserver (sid, bid, dojoin) VALUES (205, 105, '2011-07-07');
 
 SELECT * FROM rserver;
 
+-- Find the colours of boats reserved by Albert
+
 SELECT *
 FROM sailor
-WHERE sname LIKE '%A%';
+WHERE sname = 'Albert';
+
+-- Find all sailor id’s of sailors who have a rating of at least 8 or reserved boat 103
+
+SELECT sname FROM sailor 
+WHERE sid NOT IN 
+(SELECT DISTINCT(r.sid) FROM reserves r
+JOIN boat b ON r.bid=b.bid
+WHERE bname="b3")
+ORDER BY sname ASC;
+
+-- Find the names of sailors who have not reserved a boat whose name contains the string “storm”. Order the names in ascending order.
 
 SELECT s.sname
 FROM sailor s
-WHERE s.sid IN (SELECT rs.sid FROM rserver rs);
+WHERE s.sid IN (SELECT s.sid FROM rserver r);
 
-SELECT s.*
-FROM sailor s
-WHERE EXISTS (SELECT 1 FROM rserver rs WHERE s.sid = rs.sid);
+-- Find the names of sailors who have reserved all boats.
 
-CREATE TRIGGER T1
-AFTER INSERT ON sailor
+SELECT sname
+FROM SAILOR
+WHERE NOT EXISTS (SELECT * FROM BOAT
+WHERE BOAT.bid NOT IN (SELECT bid FROM RESERVES WHERE RESERVES.sid = SAILOR.sid));
+
+-- Find the name and age of the oldest sailor.
+
+SELECT sname,age FROM sailor 
+WHERE age=(SELECT MAX(s.age) FROM sailor s);
+
+-- For each boat which was reserved by at least 5 sailors with age >= 40, find the boat id and the average age of such sailors.
+
+SELECT b.bid,AVG(s.age) 
+FROM sailor s,boat b,reserves r
+WHERE s.age>=40 AND s.sid=r.sid AND r.bid=b.bid
+GROUP BY b.bid
+HAVING COUNT(DISTINCT(s.sid))>=5;
+
+-- Create a view that shows the names and colours of all the boats that have been reserved by a sailor with a specific rating.    
+
+CREATE VIEW Boat_reservation AS
+SELECT bname, color
+FROM BOAT b
+JOIN RESERVES r ON b.bid = r.bid
+JOIN SAILOR s ON s.sid = r.sid
+WHERE rating = 8;
+SELECT * FROM Boat_reservation;
+
+-- A trigger that prevents boats from being deleted If they have active reservations.
+
+CREATE TRIGGER Prevent_Delete_Boats
+BEFORE DELETE ON BOAT
 FOR EACH ROW
-    INSERT INTO sail (sid, sname, rating, age)
-    VALUES (NEW.sid, NEW.sname, DEFAULT, DEFAULT);
+BEGIN
+IF (EXISTS (SELECT * FROM RESERVES WHERE bid = OLD.bid)) THEN
+SIGNAL SQLSTATE '45000'
+SET MESSAGE_TEXT = 'Cannot delete boat with active reservations';
+END IF;
+END;
